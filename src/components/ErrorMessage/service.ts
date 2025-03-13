@@ -1,4 +1,4 @@
-import { ErrorType } from './types';
+import { ErrorType } from '../../types/Error';
 
 export function getMessage(error: ErrorType) {
   switch (error.type) {

@@ -5,12 +5,15 @@ import { Todo } from './types/Todo';
 import TodoList from './components/TodoList/TodoList';
 import Footer from './components/Footer/Footer';
 import ErrorMessage from './components/ErrorMessage';
-import { ErrorType } from './components/ErrorMessage/types';
 import { getFiltredTodoList } from './components/Footer/service';
 import { Filter } from './components/Footer/types';
+import Header from './components/Header';
+import { ErrorType } from './types/Error';
+import callError from './utils/callError';
 
 export const App: React.FC = () => {
   const [filter, setFilter] = useState<Filter>('FilterLinkAll');
+  const [loadingId, setLoadingId] = useState(0);
 
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filtredTodos, setFiltredTodos] = useState<Todo[]>(
@@ -19,25 +22,13 @@ export const App: React.FC = () => {
 
   const [error, setError] = useState<ErrorType>({
     isVisible: false,
-    type: '',
+    type: 'emptyTitle',
   });
 
   useEffect(() => {
     getTodos()
       .then(setTodos)
-      .catch(() => {
-        setError({
-          isVisible: true,
-          type: 'load',
-        });
-
-        setTimeout(() => {
-          setError({
-            isVisible: false,
-            type: '',
-          });
-        }, 3000);
-      });
+      .catch(() => callError(setError, 'load'));
   }, []);
 
   useEffect(() => {
@@ -48,31 +39,33 @@ export const App: React.FC = () => {
     return <UserWarning />;
   }
 
+  if (error.isVisible) {
+    setTimeout(() => {
+      setError({
+        isVisible: false,
+        type: '',
+      });
+    }, 3000);
+  }
+
   return (
     <div className="todoapp">
       <h1 className="todoapp__title">todos</h1>
 
       <div className="todoapp__content">
-        <header className="todoapp__header">
-          {/* this button should have `active` class only if all todos are completed */}
-          <button
-            type="button"
-            className="todoapp__toggle-all active"
-            data-cy="ToggleAllButton"
-          />
+        <Header
+          todos={todos}
+          setError={setError}
+          setTodos={setTodos}
+          setLoadingId={setLoadingId}
+        />
 
-          {/* Add a todo on form submit */}
-          <form>
-            <input
-              data-cy="NewTodoField"
-              type="text"
-              className="todoapp__new-todo"
-              placeholder="What needs to be done?"
-            />
-          </form>
-        </header>
-
-        <TodoList todos={filtredTodos} />
+        <TodoList
+          todos={filtredTodos}
+          loadingId={loadingId}
+          setError={setError}
+          setTodos={setTodos}
+        />
 
         {!!todos.length && (
           <Footer todos={todos} filter={filter} updateFilter={setFilter} />
