@@ -1,20 +1,51 @@
-import React from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Filter } from './types';
 import classNames from 'classnames';
-import { Todo } from '../../types/Todo';
+import { MainContext } from '../../ContextProvider/ContextProvider';
+import { deleteTodo } from '../../api/todos';
+import callError from '../../utils/callError';
 
-type FooterProps = {
-  todos: Todo[];
-  filter: Filter;
-  updateFilter: React.Dispatch<React.SetStateAction<Filter>>;
-};
+const Footer: React.FC = () => {
+  const context = useContext(MainContext);
+  const { todos, setTodos, filter, setFilter, setError, setLoadingIds } =
+    context;
 
-const Footer: React.FC<FooterProps> = ({ todos, filter, updateFilter }) => {
-  const handleFilterClick = (event: React.MouseEvent): void => {
-    const element = event.target as HTMLElement;
+  const [isClearDisabled, setIsClearDisabled] = useState(false);
 
-    updateFilter(element.dataset.cy as Filter);
-  };
+  useEffect(() => {
+    setIsClearDisabled(!todos.some(todo => todo.completed));
+  }, [todos]);
+
+  const handleFilterClick = useCallback(
+    (event: React.MouseEvent): void => {
+      const element = event.target as HTMLElement;
+
+      setFilter(element.dataset.cy as Filter);
+    },
+    [setFilter],
+  );
+
+  const handleClearCompletedClick = useCallback(() => {
+    const completedTodos = todos.filter(todo => todo.completed);
+
+    setLoadingIds(completedTodos.map(todo => todo.id));
+
+    Promise.allSettled(completedTodos.map(todo => deleteTodo(todo.id)))
+      .then(res => {
+        setLoadingIds([0]);
+
+        const deletedTodos = completedTodos.filter((t, index) => {
+          return res[index].status === 'fulfilled';
+        });
+
+        if (deletedTodos.length < completedTodos.length) {
+          callError(setError, 'delete');
+        }
+
+        setTodos(todos.filter(todo => !deletedTodos.includes(todo)));
+      })
+      .catch(() => callError(setError, 'delete'));
+  }, [todos, setLoadingIds, setError, setTodos]);
 
   const activeNumbers = todos.filter(todo => !todo.completed).length;
 
@@ -65,6 +96,8 @@ const Footer: React.FC<FooterProps> = ({ todos, filter, updateFilter }) => {
         type="button"
         className="todoapp__clear-completed"
         data-cy="ClearCompletedButton"
+        disabled={isClearDisabled}
+        onClick={handleClearCompletedClick}
       >
         Clear completed
       </button>

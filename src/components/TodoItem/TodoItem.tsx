@@ -1,38 +1,35 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Todo } from '../../types/Todo';
 import classNames from 'classnames';
 import { deleteTodo } from '../../api/todos';
 import callError from '../../utils/callError';
-import { ErrorType } from '../../types/Error';
+import { MainContext } from '../../ContextProvider/ContextProvider';
 
 type TodoProps = {
   todo: Todo;
-  todos: Todo[];
-  loadingId: number;
-  setError: React.Dispatch<React.SetStateAction<ErrorType>>;
-  setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
 };
 
-const TodoItem: React.FC<TodoProps> = ({
-  todo,
-  todos,
-  loadingId,
-  setError,
-  setTodos,
-}) => {
+const TodoItem: React.FC<TodoProps> = ({ todo }) => {
+  const context = useContext(MainContext);
+  const { todos, setTodos, setError, loadingIds } = context;
+
   const { id, title, completed } = todo;
 
-  const [isLoading, setIsloading] = useState(id === loadingId);
+  const [isLoading, setIsLoading] = useState(false);
   const [todoState, setTodoState] = useState({
     isEdited: false,
     editedValue: title,
     completed: completed,
   });
 
+  useEffect(() => {
+    setIsLoading(loadingIds.some(x => x === id));
+  }, [loadingIds, setIsLoading, id]);
+
   if (isLoading) {
-    setTimeout(() => setIsloading(false), 500);
+    setTimeout(() => setIsLoading(false), 3000);
   }
 
   useEffect(() => {
@@ -55,17 +52,14 @@ const TodoItem: React.FC<TodoProps> = ({
     (event: React.MouseEvent) => {
       event.preventDefault();
 
-      setIsloading(true);
+      setIsLoading(true);
       deleteTodo(id)
         .then(() => {
-          setTimeout(() => {
-            setIsloading(false);
-            setTodos(todos.filter(task => task.id !== id));
-          }, 500);
+          setTodos(todos.filter(task => task.id !== id));
         })
         .catch(() => callError(setError, 'delete'));
     },
-    [id, todos, setTodos, setError],
+    [id, todos, setError, setTodos],
   );
 
   return (
@@ -122,7 +116,9 @@ const TodoItem: React.FC<TodoProps> = ({
       {/* overlay will cover the todo while it is being deleted or updated */}
       <div
         data-cy="TodoLoader"
-        className={classNames('modal overlay', { 'is-active': isLoading })}
+        className={classNames('modal overlay', {
+          'is-active': isLoading,
+        })}
       >
         <div className="modal-background has-background-white-ter" />
         <div className="loader" />

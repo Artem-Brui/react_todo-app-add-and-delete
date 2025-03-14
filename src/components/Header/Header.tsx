@@ -1,25 +1,20 @@
-import React, { FormEvent, useEffect, useRef, useState } from 'react';
-import { Todo } from '../../types/Todo';
+import React, {
+  FormEvent,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import classNames from 'classnames';
-import { ErrorType } from '../../types/Error';
 import callError from '../../utils/callError';
 import { addTodo, USER_ID } from '../../api/todos';
+import { MainContext } from '../../ContextProvider/ContextProvider';
 
-type HeaderProps = {
-  todos: Todo[];
-  setError: React.Dispatch<React.SetStateAction<ErrorType>>;
-  setLoadingId: React.Dispatch<React.SetStateAction<number>>;
-  setTempTodo: React.Dispatch<React.SetStateAction<Todo | null>>;
-  setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
-};
+const Header: React.FC = ({}) => {
+  const context = useContext(MainContext);
+  const { todos, setTodos, setError, loadingIds, setLoadingIds, setTempTodo } =
+    context;
 
-const Header: React.FC<HeaderProps> = ({
-  todos,
-  setError,
-  setLoadingId,
-  setTodos,
-  setTempTodo,
-}) => {
   const [todoInputValue, setTodoInputValue] = useState('');
   const [isDisabled, setIsDisabled] = useState(false);
 
@@ -53,11 +48,12 @@ const Header: React.FC<HeaderProps> = ({
       userId: USER_ID,
       completed: false,
     });
+    setLoadingIds([...loadingIds, 0]);
 
     addTodo(todoTitle)
       .then(todo => {
         setTodoInputValue('');
-        setLoadingId(todo.id);
+        setLoadingIds([todo.id]);
         setTempTodo(null);
         setTodos([...todos, todo]);
       })
@@ -65,7 +61,10 @@ const Header: React.FC<HeaderProps> = ({
         setTempTodo(null);
         callError(setError, 'add');
       })
-      .finally(() => setIsDisabled(false));
+      .finally(() => {
+        setLoadingIds([0]);
+        setIsDisabled(false);
+      });
   };
 
   return (
