@@ -34,7 +34,7 @@ const Footer: React.FC = () => {
       .then(res => {
         setLoadingIds([0]);
 
-        const deletedTodos = completedTodos.filter((t, index) => {
+        const deletedTodos = completedTodos.filter((_t, index) => {
           return res[index].status === 'fulfilled';
         });
 
