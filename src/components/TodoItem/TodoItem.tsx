@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Todo } from '../../types/Todo';
 import classNames from 'classnames';
 import { deleteTodo } from '../../api/todos';
@@ -51,6 +51,23 @@ const TodoItem: React.FC<TodoProps> = ({
     };
   }, [todoState]);
 
+  const handleDeleteClick = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+
+      setIsloading(true);
+      deleteTodo(id)
+        .then(() => {
+          setTimeout(() => {
+            setIsloading(false);
+            setTodos(todos.filter(task => task.id !== id));
+          }, 500);
+        })
+        .catch(() => callError(setError, 'delete'));
+    },
+    [id, todos, setTodos, setError],
+  );
+
   return (
     <div
       key={id}
@@ -97,17 +114,7 @@ const TodoItem: React.FC<TodoProps> = ({
         type="button"
         className="todo__remove"
         data-cy="TodoDelete"
-        onClick={() =>
-          deleteTodo(id)
-            .then(() => {
-              setIsloading(true);
-              setTimeout(() => {
-                setIsloading(false);
-                setTodos(todos.filter(task => task.id !== id));
-              }, 500);
-            })
-            .catch(() => callError(setError, 'delete'))
-        }
+        onClick={handleDeleteClick}
       >
         ×
       </button>

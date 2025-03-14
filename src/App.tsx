@@ -5,7 +5,6 @@ import { Todo } from './types/Todo';
 import TodoList from './components/TodoList/TodoList';
 import Footer from './components/Footer/Footer';
 import ErrorMessage from './components/ErrorMessage';
-import { getFiltredTodoList } from './components/Footer/service';
 import { Filter } from './components/Footer/types';
 import Header from './components/Header';
 import { ErrorType } from './types/Error';
@@ -16,9 +15,7 @@ export const App: React.FC = () => {
   const [loadingId, setLoadingId] = useState(0);
 
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [filtredTodos, setFiltredTodos] = useState<Todo[]>(
-    getFiltredTodoList(filter, todos),
-  );
+  const [tempTodo, setTempTodo] = useState<Todo | null>(null);
 
   const [error, setError] = useState<ErrorType>({
     isVisible: false,
@@ -30,10 +27,6 @@ export const App: React.FC = () => {
       .then(setTodos)
       .catch(() => callError(setError, 'load'));
   }, []);
-
-  useEffect(() => {
-    setFiltredTodos(getFiltredTodoList(filter, todos));
-  }, [filter, todos]);
 
   if (!USER_ID) {
     return <UserWarning />;
@@ -56,12 +49,15 @@ export const App: React.FC = () => {
         <Header
           todos={todos}
           setError={setError}
-          setTodos={setTodos}
           setLoadingId={setLoadingId}
+          setTempTodo={setTempTodo}
+          setTodos={setTodos}
         />
 
         <TodoList
-          todos={filtredTodos}
+          todos={todos}
+          filter={filter}
+          tempTodo={tempTodo}
           loadingId={loadingId}
           setError={setError}
           setTodos={setTodos}
