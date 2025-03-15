@@ -58,24 +58,20 @@ const MainContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }, 3000);
   }
 
-  return (
-    <MainContext.Provider
-      value={{
-        filter,
-        setFilter,
-        loadingIds,
-        setLoadingIds,
-        todos,
-        setTodos,
-        tempTodo,
-        setTempTodo,
-        error,
-        setError,
-      }}
-    >
-      {children}
-    </MainContext.Provider>
-  );
+  const values = {
+    filter,
+    setFilter,
+    loadingIds,
+    setLoadingIds,
+    todos,
+    setTodos,
+    tempTodo,
+    setTempTodo,
+    error,
+    setError,
+  };
+
+  return <MainContext.Provider value={values}>{children}</MainContext.Provider>;
 };
 
 export default MainContextProvider;

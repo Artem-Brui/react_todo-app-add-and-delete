@@ -5,6 +5,12 @@ import { MainContext } from '../../ContextProvider/ContextProvider';
 import { deleteTodo } from '../../api/todos';
 import callError from '../../utils/callError';
 
+enum FilterButton {
+  All,
+  Active,
+  Completed,
+}
+
 const Footer: React.FC = () => {
   const context = useContext(MainContext);
   const { todos, setTodos, filter, setFilter, setError, setLoadingIds } =
@@ -53,38 +59,25 @@ const Footer: React.FC = () => {
 
       {/* Active link should have the 'selected' class */}
       <nav className="filter" data-cy="Filter">
-        <a
-          href="#/"
-          className={classNames('filter__link', {
-            selected: filter === 'FilterLinkAll',
-          })}
-          data-cy="FilterLinkAll"
-          onClick={handleFilterClick}
-        >
-          All
-        </a>
+        {Object.values(FilterButton).map(value => {
+          if (typeof value === 'number') {
+            return;
+          }
 
-        <a
-          href="#/active"
-          className={classNames('filter__link', {
-            selected: filter === 'FilterLinkActive',
-          })}
-          data-cy="FilterLinkActive"
-          onClick={handleFilterClick}
-        >
-          Active
-        </a>
-
-        <a
-          href="#/completed"
-          className={classNames('filter__link', {
-            selected: filter === 'FilterLinkCompleted',
-          })}
-          data-cy="FilterLinkCompleted"
-          onClick={handleFilterClick}
-        >
-          Completed
-        </a>
+          return (
+            <a
+              key={value}
+              href="#/"
+              className={classNames('filter__link', {
+                selected: filter === `FilterLink${value}`,
+              })}
+              data-cy={`FilterLink${value}`}
+              onClick={handleFilterClick}
+            >
+              {value}
+            </a>
+          );
+        })}
       </nav>
 
       {/* this button should be disabled if there are no completed todos */}
