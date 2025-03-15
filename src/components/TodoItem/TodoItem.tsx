@@ -1,6 +1,12 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Todo } from '../../types/Todo';
 import classNames from 'classnames';
 import { deleteTodo } from '../../api/todos';
@@ -17,19 +23,16 @@ const TodoItem: React.FC<TodoProps> = ({ todo }) => {
 
   const { id, title, completed } = todo;
 
-  const [isLoading, setIsLoading] = useState(false);
   const [todoState, setTodoState] = useState({
     isEdited: false,
     editedValue: title,
     completed: completed,
   });
 
-  useEffect(() => {
-    setIsLoading(loadingIds.some(x => x === id));
-  }, [loadingIds, setIsLoading, id]);
+  const isLoading = useRef(loadingIds.some(x => x === id));
 
-  if (isLoading) {
-    setTimeout(() => setIsLoading(false), 3000);
+  if (isLoading.current) {
+    setTimeout(() => (isLoading.current = false), 3000);
   }
 
   useEffect(() => {
@@ -52,7 +55,7 @@ const TodoItem: React.FC<TodoProps> = ({ todo }) => {
     (event: React.MouseEvent) => {
       event.preventDefault();
 
-      setIsLoading(true);
+      isLoading.current = true;
       deleteTodo(id)
         .then(() => {
           setTodos(todos.filter(task => task.id !== id));
@@ -117,7 +120,7 @@ const TodoItem: React.FC<TodoProps> = ({ todo }) => {
       <div
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
-          'is-active': isLoading,
+          'is-active': isLoading.current,
         })}
       >
         <div className="modal-background has-background-white-ter" />

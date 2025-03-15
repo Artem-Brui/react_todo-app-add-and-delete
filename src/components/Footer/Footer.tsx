@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { Filter } from './types';
 import classNames from 'classnames';
 import { MainContext } from '../../ContextProvider/ContextProvider';
@@ -10,11 +10,7 @@ const Footer: React.FC = () => {
   const { todos, setTodos, filter, setFilter, setError, setLoadingIds } =
     context;
 
-  const [isClearDisabled, setIsClearDisabled] = useState(false);
-
-  useEffect(() => {
-    setIsClearDisabled(!todos.some(todo => todo.completed));
-  }, [todos]);
+  const isClearDisabled = !todos.some(todo => todo.completed);
 
   const handleFilterClick = useCallback(
     (event: React.MouseEvent): void => {
